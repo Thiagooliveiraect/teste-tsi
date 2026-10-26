@@ -1,13 +1,1 @@
 
-1. Instale o Ollama pelo site oficial: https://ollama.com/download
-2. Instale Python 3, caso ainda não esteja instalado: https://www.python.org/downloads/
-3. Abra o PowerShell ou terminal.
-4. Baixe o modelo de embeddings:
-ollama pull nomic-embed-text
-Confira se o modelo aparece na lista:
-ollama list
-O Ollama normalmente inicia o serviço local automaticamente após a instalação. Se não estiver em execução, abra o aplicativo Ollama. Como alternativa, execute ollama serve em um terminal; se a porta já estiver ocupada, o serviço provavelmente já está ativo.
-Na pasta do projeto, execute:
-python -m pip install -r requirements.txt
-Se o comando python não estiver disponível no Windows, tente:
-py -m pip install -r requirements.txt
