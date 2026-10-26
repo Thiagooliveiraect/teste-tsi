@@ -1,0 +1,25 @@
+Este projeto demonstra como transformar um texto simples em um vetor numérico (embedding) usando o Ollama executado localmente e Python.
+Embeddings são representações numéricas de textos que podem ser usados em aplicações como busca semântica e comparação de similaridade.
+- Python 3
+- Ollama
+- Modelo nomic-embed-text
+- Biblioteca Python ollama
+```
+atividade-ollama-embeddings/
+├── embeddings.py
+├── requirements.txt
+└── README.md
+
+```
+1. Instale o Ollama pelo site oficial: https://ollama.com/download
+2. Instale Python 3, caso ainda não esteja instalado: https://www.python.org/downloads/
+3. Abra o PowerShell ou terminal.
+4. Baixe o modelo de embeddings:
+ollama pull nomic-embed-text
+Confira se o modelo aparece na lista:
+ollama list
+O Ollama normalmente inicia o serviço local automaticamente após a instalação. Se não estiver em execução, abra o aplicativo Ollama. Como alternativa, execute ollama serve em um terminal; se a porta já estiver ocupada, o serviço provavelmente já está ativo.
+Na pasta do projeto, execute:
+python -m pip install -r requirements.txt
+Se o comando python não estiver disponível no Windows, tente:
+py -m pip install -r requirements.txt
