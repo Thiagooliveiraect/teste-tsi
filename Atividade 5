@@ -1,0 +1,125 @@
+"""
+Sistema de Recuperação de Informações (RAG)
+LangChain + FAISS + Hugging Face Embeddings + Ollama
+
+Execute:
+    python app.py
+
+Pré-requisitos:
+    1. Instale as dependências: pip install -r requirements.txt
+    2. Instale o Ollama: https://ollama.com/
+    3. Baixe um modelo: ollama pull llama3.2
+    4. Mantenha o Ollama em execução.
+"""
+
+from pathlib import Path
+from langchain_classic.chains import RetrievalQA
+from langchain_community.document_loaders import TextLoader
+from langchain_community.vectorstores import FAISS
+from langchain_huggingface import HuggingFaceEmbeddings
+from langchain_ollama import OllamaLLM
+from langchain_text_splitters import RecursiveCharacterTextSplitter
+
+PASTA_DOCUMENTOS = Path("documentos")
+PASTA_INDICE = Path("faiss_index")
+MODELO_EMBEDDING = "sentence-transformers/all-MiniLM-L6-v2"
+MODELO_OLLAMA = "llama3.2"
+
+
+def carregar_documentos():
+    """Carrega todos os arquivos .txt da pasta documentos."""
+    arquivos = list(PASTA_DOCUMENTOS.glob("*.txt"))
+    if not arquivos:
+        raise FileNotFoundError(
+            "Nenhum arquivo .txt encontrado na pasta 'documentos'."
+        )
+
+    documentos = []
+    for arquivo in arquivos:
+        loader = TextLoader(str(arquivo), encoding="utf-8")
+        documentos.extend(loader.load())
+    return documentos
+
+
+def criar_ou_carregar_banco(embeddings):
+    """Cria o índice FAISS na primeira execução ou carrega o índice salvo."""
+    if PASTA_INDICE.exists():
+        print("Carregando banco vetorial FAISS existente...")
+        return FAISS.load_local(
+            str(PASTA_INDICE),
+            embeddings,
+            allow_dangerous_deserialization=True
+        )
+
+    print("Carregando documentos...")
+    documentos = carregar_documentos()
+
+    divisor = RecursiveCharacterTextSplitter(
+        chunk_size=700,
+        chunk_overlap=100,
+        separators=["\n\n", "\n", ". ", " ", ""]
+    )
+    chunks = divisor.split_documents(documentos)
+    print(f"Documentos carregados: {len(documentos)}")
+    print(f"Trechos (chunks) criados: {len(chunks)}")
+
+    print("Gerando embeddings e criando índice FAISS...")
+    banco = FAISS.from_documents(chunks, embeddings)
+    banco.save_local(str(PASTA_INDICE))
+    print(f"Índice salvo em: {PASTA_INDICE.resolve()}")
+    return banco
+
+
+def criar_pipeline(banco):
+    """Conecta o recuperador FAISS ao RetrievalQA e ao Ollama."""
+    modelo = OllamaLLM(model=MODELO_OLLAMA, temperature=0)
+    recuperador = banco.as_retriever(search_kwargs={"k": 3})
+
+    cadeia = RetrievalQA.from_chain_type(
+        llm=modelo,
+        chain_type="stuff",
+        retriever=recuperador,
+        return_source_documents=True
+    )
+    return cadeia
+
+
+def main():
+    print("=" * 60)
+    print("ASSISTENTE RAG - LANGCHAIN + FAISS")
+    print("=" * 60)
+
+    embeddings = HuggingFaceEmbeddings(
+        model_name=MODELO_EMBEDDING,
+        model_kwargs={"device": "cpu"},
+        encode_kwargs={"normalize_embeddings": True}
+    )
+
+    banco = criar_ou_carregar_banco(embeddings)
+    cadeia = criar_pipeline(banco)
+
+    print("\nSistema pronto! Digite sua pergunta.")
+    print("Digite 'sair' para encerrar.\n")
+
+    while True:
+        pergunta = input("Pergunta: ").strip()
+        if pergunta.lower() in {"sair", "exit", "quit"}:
+            print("Encerrando o sistema.")
+            break
+        if not pergunta:
+            print("Digite uma pergunta válida.\n")
+            continue
+
+        resultado = cadeia.invoke({"query": pergunta})
+        print("\nResposta:")
+        print(resultado["result"])
+
+        print("\nFontes recuperadas:")
+        for i, documento in enumerate(resultado["source_documents"], start=1):
+            fonte = documento.metadata.get("source", "Fonte desconhecida")
+            print(f"{i}. {fonte}")
+        print("\n" + "-" * 60 + "\n")
+
+
+if __name__ == "__main__":
+    main()
