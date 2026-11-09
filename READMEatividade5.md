@@ -122,17 +122,7 @@ Para alterar o modelo Ollama, modifique `MODELO_OLLAMA` em `app.py` e baixe o mo
 - O Ollama precisa estar instalado e em execução para gerar respostas.
 - O sistema é uma demonstração acadêmica; não deve ser usado para decisões críticas sem validação.
 
-## 10. Demonstração em vídeo (até 3 minutos)
-
-Sugestão de roteiro:
-
-- **0:00–0:25:** apresente o objetivo e as tecnologias do projeto.
-- **0:25–1:10:** mostre a pasta `documentos/`, o código de divisão em chunks, a geração de embeddings e a criação/salvamento do FAISS.
-- **1:10–2:25:** execute `python app.py` e faça duas ou três perguntas, por exemplo “O que são embeddings?” e “Como funciona o RAG?”.
-- **2:25–2:50:** mostre a resposta e os arquivos-fonte recuperados.
-- **2:50–3:00:** conclua explicando que o sistema recupera contexto com FAISS e usa RetrievalQA para gerar respostas.
-
-## 11. Referências
+## 10. Referências
 
 - LangChain: https://python.langchain.com/
 - FAISS: https://github.com/facebookresearch/faiss
